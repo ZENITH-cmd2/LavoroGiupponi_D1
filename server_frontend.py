@@ -451,14 +451,19 @@ if __name__ == "__main__":
         print(f"⚠  Database non trovato: {DB_PATH}")
         print("💡 Suggerimento: Esegui prima `python init_db.py`")
 
-    port = 5050
+    port = int(os.environ.get("PORT", 5050))
     print(f"\n🌐  Calor Systems Web Dashboard")
     print(f"   http://localhost:{port}")
     print(f"   Database: {DB_PATH}\n")
 
-    def open_browser():
-        time.sleep(1.2)
-        webbrowser.open(f"http://localhost:{port}")
+    # In Render non avviamo il browser locale e usiamo host 0.0.0.0
+    is_render = os.environ.get("RENDER") == "true" or os.environ.get("ENV") == "production"
+    
+    if not is_render:
+        def open_browser():
+            time.sleep(1.2)
+            webbrowser.open(f"http://localhost:{port}")
+        threading.Thread(target=open_browser, daemon=True).start()
+        
+    app.run(host="0.0.0.0", port=port, debug=False)
 
-    threading.Thread(target=open_browser, daemon=True).start()
-    app.run(host="127.0.0.1", port=port, debug=False)

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: calor-systems-dashboard
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn server_frontend:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.4
+      # Le tue API Key come OPENROUTER_API_KEY o GEMINI_API_KEY
+      # andranno impostate nella dashboard di Render (Environment Variables).
