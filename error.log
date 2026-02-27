@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "C:\Users\Utente\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pandas\core\indexes\base.py", line 3791, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 152, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 181, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas\_libs\hashtable_class_helper.pxi", line 7080, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas\_libs\hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Data_Contabile'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+  File "C:\Users\Utente\Desktop\Lavoro\Lavoro_giupponi4\backend\riconciliazione\orchestratore.py", line 66, in esegui
+    riconcilia_buoni(df_fortech_agg, pv, self.file_buoni, conn)
+  File "C:\Users\Utente\Desktop\Lavoro\Lavoro_giupponi4\backend\riconciliazione\motore_petrolifere.py", line 97, in riconcilia_buoni
+    log_missing(df_teo, impianto_id, 'buoni_ip', conn, 'Incasso_Buoni_Teorico', 'File Buoni non caricato')
+  File "C:\Users\Utente\Desktop\Lavoro\Lavoro_giupponi4\backend\riconciliazione\motore_carte.py", line 11, in log_missing
+    'data_riferimento': row['Data_Contabile'].strftime("%Y-%m-%d"),
+                        ~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Utente\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pandas\core\series.py", line 1040, in __getitem__
+    return self._get_value(key)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Utente\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pandas\core\series.py", line 1156, in _get_value
+    loc = self.index.get_loc(label)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Utente\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pandas\core\indexes\base.py", line 3798, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Data_Contabile'

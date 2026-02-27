@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calor Systems — Dashboard Riconciliazione</title>
+    <meta name="description" content="Sistema di riconciliazione automatica incassi per stazioni di servizio">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- ══════════ SIDEBAR ══════════ -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">⛽</span>
+                <div>
+                    <h1>Calor Systems</h1>
+                    <span class="logo-sub">Riconciliazione</span>
+                </div>
+            </div>
+        </div>
+        <ul class="nav-list">
+            <li class="nav-item active" data-view="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </li>
+            <li class="nav-item" data-view="upload">
+                <span class="nav-icon">📂</span>
+                <span>Carica File</span>
+            </li>
+            <li class="nav-item" data-view="riconciliazioni">
+                <span class="nav-icon">🔄</span>
+                <span>Riconciliazioni</span>
+            </li>
+            <li class="nav-item" data-view="contanti">
+                <span class="nav-icon">💰</span>
+                <span>Contanti</span>
+            </li>
+            <li class="nav-item" data-view="impianti">
+                <span class="nav-icon">🏢</span>
+                <span>Impianti</span>
+            </li>
+            <li class="nav-item" data-view="sicurezza">
+                <span class="nav-icon">🔐</span>
+                <span>Sicurezza</span>
+            </li>
+            <li class="nav-item" data-view="ai-report">
+                <span class="nav-icon">🤖</span>
+                <span>Report AI</span>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="sidebar-version">v2.0 — Workflow Completo</div>
+        </div>
+    </nav>
+
+    <!-- ══════════ MAIN CONTENT ══════════ -->
+    <main class="main-content">
+        <!-- HEADER BAR -->
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h2 class="page-title" id="pageTitle">Dashboard</h2>
+            <div class="header-right">
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Connesso</span>
+            </div>
+        </header>
+
+        <!-- ═══ VIEW: DASHBOARD ═══ -->
+        <section class="view active" id="view-dashboard">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card" id="statImpianti">
+                    <div class="stat-icon">🏢</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Impianti Attivi</div>
+                </div>
+                <div class="stat-card" id="statGiornate">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Giornate Analizzate</div>
+                </div>
+                <div class="stat-card stat-ok" id="statQuadrate">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Quadrature OK</div>
+                </div>
+                <div class="stat-card stat-warn" id="statAnomalie">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Anomalie Aperte</div>
+                </div>
+                <div class="stat-card stat-danger" id="statGravi">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Anomalie Gravi</div>
+                </div>
+                <div class="stat-card" id="statRecords">
+                    <div class="stat-icon">📄</div>
+                    <div class="stat-value">—</div>
+                    <div class="stat-label">Record Importati</div>
+                </div>
+            </div>
+
+            <!-- Stato Verifiche per Impianto -->
+            <div class="section-header">
+                <h3>Stato Verifiche per Impianto</h3>
+                <button class="btn-refresh" onclick="loadStatoVerifiche()">🔄 Aggiorna</button>
+            </div>
+            <div class="verifiche-grid" id="verificheGrid">
+                <div class="empty-state">Nessun dato disponibile. Carica i file Excel per iniziare.</div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: UPLOAD ═══ -->
+        <section class="view" id="view-upload">
+            <div class="upload-container">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📂</div>
+                    <h3>Trascina qui i file Excel</h3>
+                    <p>Oppure clicca per selezionare i file</p>
+                    <p class="upload-hint">Supportati: Fortech, AS400, Numia, iP Portal, Satispay</p>
+                    <input type="file" id="fileInput" multiple accept=".xlsx,.xls,.csv" hidden>
+                </div>
+
+                <div class="file-list" id="fileList">
+                    <!-- Files will be listed here -->
+                </div>
+
+                <div class="upload-actions" id="uploadActions" style="display:none">
+                    <button class="btn btn-secondary" onclick="clearFiles()">🗑 Svuota</button>
+                    <button class="btn btn-primary" id="btnProcess" onclick="processFiles()">▶ Elabora File</button>
+                </div>
+
+                <!-- Processing Progress -->
+                <div class="progress-section" id="progressSection" style="display:none">
+                    <div class="progress-header">
+                        <span class="progress-phase" id="progressPhase">Preparazione...</span>
+                        <span class="progress-pct" id="progressPct">0%</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-log" id="progressLog"></div>
+                </div>
+
+                <!-- Results Summary -->
+                <div class="results-summary" id="resultsSummary" style="display:none">
+                    <div class="results-header">
+                        <span class="results-icon">✅</span>
+                        <h3>Elaborazione Completata</h3>
+                    </div>
+                    <div class="results-stats" id="resultsStats"></div>
+                    <button class="btn btn-primary" onclick="switchView('riconciliazioni')">📊 Vedi Risultati</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: RICONCILIAZIONI ═══ -->
+        <section class="view" id="view-riconciliazioni">
+            <div class="section-header">
+                <h3>Risultati Riconciliazione</h3>
+                <div class="filters">
+                    <input type="date" id="filterDa" class="input-date" placeholder="Da">
+                    <input type="date" id="filterA" class="input-date" placeholder="A">
+                    <button class="btn btn-small" onclick="loadRiconciliazioni()">Filtra</button>
+                </div>
+            </div>
+            <div id="riconciliazioniTablesContainer">
+                <div class="table-container">
+                    <table class="data-table" id="riconciliazioniTable">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Impianto</th>
+                                <th>Categoria</th>
+                                <th>Fortech (€)</th>
+                                <th>Reale (€)</th>
+                                <th>Diff (€)</th>
+                                <th>Stato</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riconciliazioniBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">Nessun dato</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: CONTANTI (SIMONA - CONFERMA MATCHING) ═══ -->
+        <section class="view" id="view-contanti">
+            <div class="section-header">
+                <h3>💰 Controllo Contanti — Conferma Matching</h3>
+                <button class="btn-refresh" onclick="loadContantiBanca()">🔄 Aggiorna</button>
+            </div>
+            <p class="view-description">Verifica i risultati del matching automatico tra contante teorico (Fortech) e
+                versamenti bancari (AS400). Espandi ogni riga per vedere i dettagli del calcolo e conferma o segnala il
+                risultato.</p>
+
+            <!-- Summary Stats -->
+            <div class="contanti-stats" id="contantiStats"></div>
+
+            <!-- Matching Results -->
+            <div class="contanti-list" id="contantiList">
+                <div class="empty-state">Nessun dato contanti disponibile</div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: IMPIANTI ═══ -->
+        <section class="view" id="view-impianti">
+            <div class="section-header">
+                <h3>🏢 Impianti</h3>
+                <button class="btn-refresh" onclick="loadImpianti()">🔄 Aggiorna</button>
+            </div>
+            <div class="impianti-grid" id="impiantiGrid">
+                <div class="empty-state">Nessun dato</div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: SICUREZZA ═══ -->
+        <section class="view" id="view-sicurezza">
+            <div class="section-header">
+                <h3>🔐 Alert Sicurezza — Taleggio</h3>
+            </div>
+            <p class="view-description">Monitoraggio aperture cassaforte per impianti self-service (Taleggio).
+                L'apertura è autorizzata solo il giovedì. Il contante prelevato deve corrispondere all'incasso Fortech
+                nel periodo.</p>
+
+            <div
+                style="background:var(--bg-card);border-radius:var(--radius);border:1px solid rgba(210,153,34,0.3);padding:48px 32px;text-align:center;max-width:600px;margin:40px auto">
+                <div style="font-size:48px;margin-bottom:16px">🚧</div>
+                <h3 style="font-size:18px;font-weight:700;margin-bottom:12px">Funzionalità in arrivo</h3>
+                <p style="color:var(--text-secondary);font-size:13px;line-height:1.7;margin-bottom:20px">
+                    Questa sezione sarà attiva nella prossima versione, quando verrà integrato il modulo di
+                    <strong>scraping Taleggio</strong> per la lettura automatica degli eventi cassaforte IoT.
+                </p>
+                <div style="display:flex;flex-direction:column;gap:8px;text-align:left;max-width:380px;margin:0 auto">
+                    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary)">
+                        <span style="color:var(--status-ok)">✅</span> Struttura frontend pronta
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary)">
+                        <span style="color:var(--status-ok)">✅</span> Endpoint API <code
+                            style="background:var(--bg-tertiary);padding:1px 6px;border-radius:4px;font-size:11px">/api/sicurezza</code>
+                        configurato
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary)">
+                        <span style="color:var(--status-warn)">⏳</span> In attesa: modulo scraping Taleggio
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-secondary)">
+                        <span style="color:var(--status-warn)">⏳</span> In attesa: integrazione dati cassaforte IoT
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ VIEW: AI REPORT ═══ -->
+        <section class="view" id="view-ai-report">
+            <div class="section-header">
+                <h3>🤖 Report AI — Analisi Intelligente</h3>
+            </div>
+            <p class="view-description">L'intelligenza artificiale analizza i risultati della riconciliazione e genera
+                un report professionale con anomalie, criticità e suggerimenti. Powered by OpenRouter (GPT-4o Mini).</p>
+
+            <div class="ai-controls">
+                <button class="btn btn-ai" id="btnGenerateAI" onclick="generateAIReport()">
+                    <span class="ai-sparkle">✨</span> Genera Report AI
+                </button>
+                <span class="ai-status" id="aiStatus"></span>
+            </div>
+
+            <div class="ai-report-container" id="aiReportContainer" style="display:none">
+                <div class="ai-report-header">
+                    <span>🤖 Analisi AI</span>
+                    <span class="ai-timestamp" id="aiTimestamp"></span>
+                </div>
+                <div class="ai-report-body" id="aiReportBody"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ══════════ MODAL: DETTAGLIO IMPIANTO ══════════ -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalTitle">Impianto</h3>
+                    <span class="modal-subtitle" id="modalSubtitle"></span>
+                </div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <div class="empty-state">Caricamento...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
