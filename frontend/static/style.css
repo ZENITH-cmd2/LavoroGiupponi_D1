@@ -4,24 +4,26 @@
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-    /* Core palette */
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #1c2128;
-    --bg-card: #21262d;
-    --bg-hover: #292e36;
+    /* Core palette (Aziendale Light Theme) */
+    --bg-primary: #f4f6fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e2e4ea;
+    --bg-card: #ffffff;
+    --bg-hover: #fcfcfd;
 
     /* Text */
-    --text-primary: #e6edf3;
-    --text-secondary: #8b949e;
-    --text-muted: #484f58;
+    --text-primary: #0a0e27;
+    --text-secondary: #484f58;
+    --text-muted: #8b949e;
 
     /* Accent */
-    --accent-blue: #58a6ff;
+    --accent-blue: #011cff;
+    /* Blu primario */
     --accent-green: #3fb950;
     --accent-yellow: #d29922;
     --accent-orange: #db6d28;
-    --accent-red: #f85149;
+    --accent-red: #ff3c1e;
+    /* Rosso accento */
     --accent-purple: #bc8cff;
     --accent-cyan: #39d2c0;
 
@@ -54,9 +56,20 @@
     --radius-sm: 8px;
 
     /* Shadows */
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 20px rgba(88, 166, 255, 0.15);
+    --shadow-card: 0 4px 12px rgba(1, 28, 255, 0.05);
+    /* Ombra azzurrata leggerissima */
+    --shadow-hover: 0 8px 24px rgba(1, 28, 255, 0.1);
+    --shadow-glow: 0 0 20px rgba(1, 28, 255, 0.15);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
 }
 
 /* ═══ RESET ═══ */
@@ -134,9 +147,10 @@ body {
 }
 
 .logo h1 {
-    font-size: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
     font-weight: 700;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
     line-height: 1.2;
 }
 
@@ -894,13 +908,13 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    background: var(--accent-blue);
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(88, 166, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(1, 28, 255, 0.2);
 }
 
 .btn-primary:disabled {
@@ -1233,7 +1247,7 @@ body {
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    background: linear-gradient(135deg, #bc8cff, #58a6ff, #39d2c0);
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-red));
     background-size: 200% 200%;
     color: white;
     transition: all 0.3s ease;
@@ -1256,7 +1270,7 @@ body {
 
 .btn-ai:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(188, 140, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(1, 28, 255, 0.2);
 }
 
 .btn-ai:disabled {
