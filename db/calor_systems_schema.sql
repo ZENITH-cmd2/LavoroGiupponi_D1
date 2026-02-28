@@ -488,13 +488,15 @@ INSERT INTO impianti (
     codice_pv_fortech, 
     codice_gestore,
     tipo_gestione,
-    indirizzo
+    indirizzo,
+    attivo
 ) VALUES (
     'Bozzolo - Giuseppina 7/BIS',
     '43958',
     '181706',
     'PRESIDIATO',
-    'Via Giuseppina 7/BIS'
+    'Via Giuseppina 7/BIS',
+    0
 );
 
 -- Terzo impianto (Rovetta)
@@ -502,12 +504,14 @@ INSERT INTO impianti (
     nome_impianto, 
     codice_pv_fortech, 
     tipo_gestione,
-    indirizzo
+    indirizzo,
+    attivo
 ) VALUES (
     'Rovetta - Via Fantoni 53',
     '42840',
     'PRESIDIATO',
-    'Via Fantoni 53'
+    'Via Fantoni 53',
+    0
 );
 
 -- ============================================================================
