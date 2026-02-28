@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 def get_saved_api_key(provider: str) -> str:
     """Tenta di recuperare la chiave API dalle variabili d'ambiente o dal file .env.local."""
-    load_dotenv(".env.local")
-    load_dotenv()
+    load_dotenv(".env.local", override=True)
+    load_dotenv(override=True)
     
     if provider == "OpenRouter":
         return os.environ.get("OPENROUTER_API_KEY", "")
