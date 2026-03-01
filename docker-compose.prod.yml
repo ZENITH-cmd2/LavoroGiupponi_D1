@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    environment:
+      - ENV=production
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-cambiami-subito-in-prod}
+    volumes:
+      - sqldata:/app/db_data
+    ports:
+      - "5050:5050"
+    # In produzione si consiglia di non esporre 5050 direttamente ma limitarlo all'internal network
+    # collegato a un reverse proxy (nginx o traefik) che forzi l'HTTPS (TLS/SSL).
+    networks:
+      - calor_net
+
+volumes:
+  sqldata:
+
+networks:
+  calor_net:

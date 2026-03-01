@@ -23,12 +23,27 @@ from backend.riconciliazione.orchestratore import Orchestratore
 from backend.riconciliazione.db_manager import get_db_connection
 from backend.riconciliazione.ai_report import get_saved_api_key, generate_report
 
+from flask_jwt_extended import JWTManager, jwt_required
+from backend.auth import auth_bp
+from backend.models import init_auth_db
+import datetime
+
 DB_PATH = os.path.join(PROJECT_ROOT, "database_riconciliazioni.db")
 
 app = Flask(__name__, 
             template_folder="frontend/templates",
             static_folder="frontend/static")
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB max upload
+
+# Configurazione Sicurezza JWT (OWASP)
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'calor-systems-super-secret-key-production-ready-2025')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=7)
+jwt = JWTManager(app)
+
+app.register_blueprint(auth_bp)
+init_auth_db(DB_PATH)
+
 
 def get_readonly_db():
     conn = get_db_connection(DB_PATH)
@@ -41,10 +56,15 @@ def get_readonly_db():
 def index():
     return render_template("index.html")
 
+@app.route("/login")
+def login_page():
+    return render_template("login.html")
+
 # ============================================================================
 # API ENDPOINTS (READ)
 # ============================================================================
 @app.route("/api/stats")
+@jwt_required()
 def api_stats():
     """Global statistics for the dashboard header."""
     conn = get_readonly_db()
@@ -99,6 +119,7 @@ def api_stats():
         conn.close()
 
 @app.route("/api/impianti")
+@jwt_required()
 def api_impianti():
     """List all impianti with their latest reconciliation status."""
     conn = get_readonly_db()
@@ -135,6 +156,7 @@ def api_impianti():
         conn.close()
 
 @app.route("/api/impianti/<int:impianto_id>/andamento")
+@jwt_required()
 def api_andamento(impianto_id):
     """Andamento riconciliazione per un singolo impianto nel tempo."""
     conn = get_readonly_db()
@@ -218,6 +240,7 @@ def api_andamento(impianto_id):
         conn.close()
 
 @app.route("/api/riconciliazioni")
+@jwt_required()
 def api_riconciliazioni():
     conn = get_readonly_db()
     try:
@@ -261,6 +284,7 @@ def api_riconciliazioni():
         conn.close()
 
 @app.route("/api/stato-verifiche")
+@jwt_required()
 def api_stato_verifiche():
     conn = get_readonly_db()
     try:
@@ -314,6 +338,7 @@ def api_stato_verifiche():
 
 
 @app.route("/api/contanti-banca")
+@jwt_required()
 def api_contanti_banca():
     conn = get_readonly_db()
     try:
@@ -348,10 +373,12 @@ def api_contanti_banca():
         conn.close()
 
 @app.route("/api/sicurezza")
+@jwt_required()
 def api_sicurezza():
     return jsonify([]) # Non implementata ancora
 
 @app.route("/api/ai-report", methods=["POST"])
+@jwt_required()
 def api_ai_report():
     conn = get_readonly_db()
     try:
@@ -395,6 +422,7 @@ def api_ai_report():
 # ============================================================================
 
 @app.route("/api/upload", methods=["POST"])
+@jwt_required()
 def api_upload():
     if 'files[]' not in request.files:
         return jsonify({"error": "Nessun file caricato"}), 400

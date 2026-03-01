@@ -870,4 +870,11 @@ async function generateAIReport() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
+
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', () => {
+            if (typeof Auth !== 'undefined') Auth.clear();
+        });
+    }
 });
