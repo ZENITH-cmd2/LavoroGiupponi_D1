@@ -74,6 +74,7 @@ function switchView(viewName) {
     if (viewName === 'contanti') loadContantiBanca();
     if (viewName === 'impianti') loadImpianti();
     if (viewName === 'sicurezza') loadSicurezza();
+    if (viewName === 'settings') loadConfig();
 
     // Close mobile sidebar
     document.getElementById('sidebar').classList.remove('open');
@@ -861,6 +862,91 @@ async function generateAIReport() {
         status.style.color = 'var(--status-danger)';
     } finally {
         btn.disabled = false;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IMPOSTAZIONI (PASSWORD & CONFIG)
+// ═══════════════════════════════════════════════════════════════
+
+async function loadConfig() {
+    try {
+        const res = await fetch('/api/settings/config');
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('cfg_contanti').value = data.tolleranza_contanti_arrotondamento || 2.00;
+            document.getElementById('cfg_carte').value = data.tolleranza_carte_fisiologica || 1.00;
+            document.getElementById('cfg_satispay').value = data.tolleranza_satispay || 0.01;
+            document.getElementById('cfg_giorni').value = data.scarto_giorni_buoni || 1;
+            document.getElementById('cfg_giorni_contanti_inf').value = data.scarto_giorni_contanti_inf || 3;
+            document.getElementById('cfg_giorni_contanti_sup').value = data.scarto_giorni_contanti_sup || 7;
+        }
+    } catch (e) { console.error('Errore caricamento config:', e); }
+}
+
+async function updateConfig(e) {
+    e.preventDefault();
+    const status = document.getElementById('cfg-status');
+    status.textContent = 'Salvataggio...';
+    status.style.color = 'var(--text-secondary)';
+
+    const payload = {
+        tolleranza_contanti_arrotondamento: parseFloat(document.getElementById('cfg_contanti').value),
+        tolleranza_carte_fisiologica: parseFloat(document.getElementById('cfg_carte').value),
+        tolleranza_satispay: parseFloat(document.getElementById('cfg_satispay').value),
+        scarto_giorni_buoni: parseInt(document.getElementById('cfg_giorni').value),
+        scarto_giorni_contanti_inf: parseInt(document.getElementById('cfg_giorni_contanti_inf').value),
+        scarto_giorni_contanti_sup: parseInt(document.getElementById('cfg_giorni_contanti_sup').value)
+    };
+
+    try {
+        const res = await fetch('/api/settings/config', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            status.textContent = '✔ Tolleranze salvate con successo!';
+            status.style.color = 'var(--status-ok)';
+            setTimeout(() => status.textContent = '', 3000);
+        } else {
+            status.textContent = '✖ Errore durante il salvataggio.';
+            status.style.color = 'var(--status-danger)';
+        }
+    } catch (err) {
+        status.textContent = '✖ Errore di connessione.';
+        status.style.color = 'var(--status-danger)';
+    }
+}
+
+async function updatePassword(e) {
+    e.preventDefault();
+    const status = document.getElementById('pw-status');
+    const old_pw = document.getElementById('old_pw').value;
+    const new_pw = document.getElementById('new_pw').value;
+
+    status.textContent = 'Verifica in corso...';
+    status.style.color = 'var(--text-secondary)';
+
+    try {
+        const res = await fetch('/api/settings/password', {
+            method: 'POST',
+            body: JSON.stringify({ old_password: old_pw, new_password: new_pw })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            status.textContent = '✔ Password aggiornata. Effettua il login.';
+            status.style.color = 'var(--status-ok)';
+            document.getElementById('formPassword').reset();
+            setTimeout(() => { if (typeof Auth !== 'undefined') Auth.clear(); }, 2000);
+        } else {
+            status.textContent = '✖ ' + (data.msg || 'Errore');
+            status.style.color = 'var(--status-danger)';
+        }
+    } catch (err) {
+        status.textContent = '✖ Server irraggiungibile.';
+        status.style.color = 'var(--status-danger)';
     }
 }
 

@@ -421,6 +421,46 @@ def api_ai_report():
 # API ENDPOINTS (WRITE / ACTION)
 # ============================================================================
 
+from flask_jwt_extended import get_jwt_identity
+from backend.models import update_user_password
+import json
+
+@app.route("/api/settings/password", methods=["POST"])
+@jwt_required()
+def api_update_password():
+    current_user = get_jwt_identity()
+    data = request.get_json()
+    
+    old_pw = data.get('old_password')
+    new_pw = data.get('new_password')
+    
+    if not old_pw or not new_pw or len(new_pw) < 8:
+        return jsonify({"msg": "Dati mancanti o password troppo corta"}), 400
+        
+    success, msg = update_user_password(DB_PATH, current_user, old_pw, new_pw)
+    if success:
+        return jsonify({"msg": msg}), 200
+    else:
+        return jsonify({"msg": msg}), 400
+
+@app.route("/api/settings/config", methods=["GET", "POST"])
+@jwt_required()
+def api_config():
+    config_path = os.path.join(PROJECT_ROOT, "backend", "config.json")
+    
+    if request.method == "GET":
+        try:
+            with open(config_path, "r") as f:
+                return jsonify(json.load(f))
+        except FileNotFoundError:
+            return jsonify({}), 404
+            
+    elif request.method == "POST":
+        data = request.get_json()
+        with open(config_path, "w") as f:
+            json.dump(data, f, indent=4)
+        return jsonify({"msg": "Configurazione aggiornata"}), 200
+
 @app.route("/api/upload", methods=["POST"])
 @jwt_required()
 def api_upload():

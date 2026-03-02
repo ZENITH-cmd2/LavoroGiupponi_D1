@@ -1,0 +1,8 @@
+{
+    "tolleranza_contanti_arrotondamento": 3.0,
+    "tolleranza_carte_fisiologica": 10.5,
+    "tolleranza_satispay": 0.05,
+    "scarto_giorni_buoni": 2,
+    "scarto_giorni_contanti_inf": 3,
+    "scarto_giorni_contanti_sup": 7
+}

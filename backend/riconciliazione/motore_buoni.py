@@ -11,8 +11,23 @@ def riconcilia_buoni(df_fortech_agg, pv_code, file_buoni, conn):
 
     df_teo = df_fortech_agg[df_fortech_agg['PV'] == pv_code].copy()
     if df_teo.empty: return
+    import os
+    import json
+    
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+    scarto_giorni = 1
+    tolleranza_stretta = 1.00
+    tolleranza_larga = 10.00
+    try:
+        with open(config_path, "r") as f:
+            cfg = json.load(f)
+            scarto_giorni = int(cfg.get("scarto_giorni_buoni", 1))
+            tolleranza_stretta = float(cfg.get("tolleranza_carte_fisiologica", 1.00))
+    except Exception:
+        pass
+
     df_teo.rename(columns={'DATA': 'Data_Fortech', 'BUONI_TOT': 'Incasso_Buoni_Teorico'}, inplace=True)
-    df_teo['Data_Successiva_iPortal'] = df_teo['Data_Fortech'] + timedelta(days=1)
+    df_teo['Data_Successiva_iPortal'] = df_teo['Data_Fortech'] + timedelta(days=scarto_giorni)
     
     if not file_buoni: 
         log_missing(df_teo, impianto_id, 'buoni_ip', conn, 'Incasso_Buoni_Teorico', 'File Buoni non caricato')
@@ -67,9 +82,6 @@ def riconcilia_buoni(df_fortech_agg, pv_code, file_buoni, conn):
     df_match['Importo_Reale'] = df_match['Importo_Reale'].fillna(0.0)
     df_match['num_transazioni_iportal'] = df_match['num_transazioni_iportal'].fillna(0)
     df_match['Differenza_Euro'] = df_match['Incasso_Buoni_Teorico'] - df_match['Importo_Reale']
-    
-    tolleranza_stretta = 1.00
-    tolleranza_larga = 10.00
     
     for _, row in df_match.iterrows():
         teo = row['Incasso_Buoni_Teorico']

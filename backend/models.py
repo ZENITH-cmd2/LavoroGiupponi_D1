@@ -95,3 +95,30 @@ def get_failed_attempts(db_path, ip_address, minutes=10):
     count = cur.fetchone()['c']
     conn.close()
     return count
+
+def update_user_password(db_path, username, old_password, new_password):
+    """Verifica e cambia la password di un utente esistente."""
+    conn = get_db_connection(db_path)
+    cur = conn.cursor()
+    
+    cur.execute("SELECT id, password_hash FROM users WHERE username = ?", (username,))
+    user = cur.fetchone()
+    
+    if not user:
+        conn.close()
+        return False, "Utente non trovato"
+        
+    try:
+        # 1. Verifica la password vecchia
+        if ph.verify(user['password_hash'], old_password):
+            # 2. Hash e salva la nuova
+            new_hash = ph.hash(new_password)
+            cur.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user['id']))
+            conn.commit()
+            conn.close()
+            return True, "Password aggiornata"
+    except Exception:
+        pass
+        
+    conn.close()
+    return False, "La vecchia password non è corretta o non valida"

@@ -55,9 +55,19 @@ def riconcilia_petrolifere(df_fortech_agg, pv_code, file_petrolifere, conn):
     df_match['Importo_Portal'] = df_match['Importo_Portal'].fillna(0.0)
     df_match['Differenza_Euro'] = df_match['Incasso_Petrolifera_Teorico'] - df_match['Importo_Portal']
     
-    tolleranza_stretta = 1.00 # Margine di arrotondimento
-    tolleranza_larga = 10.00 # Anomalia Lieve
+    import os
+    import json
     
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+    tolleranza_stretta = 1.00 # default fallback
+    tolleranza_larga = 10.00
+    try:
+        with open(config_path, "r") as f:
+            cfg = json.load(f)
+            tolleranza_stretta = float(cfg.get("tolleranza_carte_fisiologica", 1.00))
+    except Exception:
+        pass
+        
     for _, row in df_match.iterrows():
         teo = row['Incasso_Petrolifera_Teorico']
         rea = row['Importo_Portal']

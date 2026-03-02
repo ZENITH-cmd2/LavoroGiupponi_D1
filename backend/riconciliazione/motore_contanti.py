@@ -34,6 +34,21 @@ def riconcilia_contanti(df_fortech_agg, pv_code, file_contanti, conn):
 
     giorni_inf, giorni_sup = 3, 7
     
+    import os
+    import json
+    
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+    tolleranza_stretta = 5.00
+    tolleranza_larga = 20.00
+    try:
+        with open(config_path, "r") as f:
+            cfg = json.load(f)
+            tolleranza_stretta = float(cfg.get("tolleranza_contanti_arrotondamento", 5.00))
+            giorni_inf = int(cfg.get("scarto_giorni_contanti_inf", 3))
+            giorni_sup = int(cfg.get("scarto_giorni_contanti_sup", 7))
+    except Exception:
+        pass
+    
     for idx_teo, row_teo in df_teo.iterrows():
         data_t, imp_t = row_teo['Data_Teorica'], row_teo['Importo_Teorico']
         lim_inf = data_t - timedelta(days=giorni_inf)
@@ -68,9 +83,9 @@ def riconcilia_contanti(df_fortech_agg, pv_code, file_contanti, conn):
             diff_netta = imp_t - imp_r
             diff_assoluta = abs(diff_netta)
             
-            if diff_assoluta <= 5.00: 
+            if diff_assoluta <= tolleranza_stretta: 
                 stato = "QUADRATO"
-            elif diff_assoluta <= 20.00: 
+            elif diff_assoluta <= tolleranza_larga: 
                 stato = "ANOMALIA_LIEVE"
             else: 
                 stato = "ANOMALIA_GRAVE"

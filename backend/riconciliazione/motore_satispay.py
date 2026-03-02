@@ -38,6 +38,19 @@ def riconcilia_satispay(df_fortech_agg, pv_code, str_pv_code, file_satispay, con
     df_match['Importo_Satispay'] = df_match['Importo_Satispay'].fillna(0)
     df_match['Differenza_Euro'] = df_match['Incasso_Satispay_Teorico'] - df_match['Importo_Satispay']
     
+    import os
+    import json
+    
+    config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+    tolleranza_stretta = 0.50
+    tolleranza_larga = 5.00
+    try:
+        with open(config_path, "r") as f:
+            cfg = json.load(f)
+            tolleranza_stretta = float(cfg.get("tolleranza_satispay", 0.01))
+    except Exception:
+        pass
+        
     for _, row in df_match.iterrows():
         teo = row['Incasso_Satispay_Teorico']
         rea = row['Importo_Satispay']
@@ -46,8 +59,8 @@ def riconcilia_satispay(df_fortech_agg, pv_code, str_pv_code, file_satispay, con
         
         if teo == 0 and rea == 0: stato = "QUADRATO"
         elif teo > 0 and rea == 0: stato = "NON_TROVATO"
-        elif diff_assoluta <= 0.50: stato = "QUADRATO"
-        elif diff_assoluta <= 5.00: stato = "ANOMALIA_LIEVE"
+        elif diff_assoluta <= tolleranza_stretta: stato = "QUADRATO"
+        elif diff_assoluta <= tolleranza_larga: stato = "ANOMALIA_LIEVE"
         else: stato = "ANOMALIA_GRAVE"
 
         data_rif = row['Data_Contabile'].strftime("%Y-%m-%d")
