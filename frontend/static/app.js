@@ -888,6 +888,7 @@ async function updateConfig(e) {
     e.preventDefault();
     const status = document.getElementById('cfg-status');
     status.textContent = 'Salvataggio...';
+    status.className = 'status-message show';
     status.style.color = 'var(--text-secondary)';
 
     const payload = {
@@ -908,7 +909,9 @@ async function updateConfig(e) {
         if (res.ok) {
             status.textContent = '✔ Tolleranze salvate con successo!';
             status.style.color = 'var(--status-ok)';
-            setTimeout(() => status.textContent = '', 3000);
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 3000);
         } else {
             status.textContent = '✖ Errore durante il salvataggio.';
             status.style.color = 'var(--status-danger)';
@@ -926,6 +929,7 @@ async function updatePassword(e) {
     const new_pw = document.getElementById('new_pw').value;
 
     status.textContent = 'Verifica in corso...';
+    status.className = 'status-message show';
     status.style.color = 'var(--text-secondary)';
 
     try {
@@ -939,7 +943,10 @@ async function updatePassword(e) {
             status.textContent = '✔ Password aggiornata. Effettua il login.';
             status.style.color = 'var(--status-ok)';
             document.getElementById('formPassword').reset();
-            setTimeout(() => { if (typeof Auth !== 'undefined') Auth.clear(); }, 2000);
+            setTimeout(() => {
+                status.classList.remove('show');
+                if (typeof Auth !== 'undefined') Auth.clear();
+            }, 2000);
         } else {
             status.textContent = '✖ ' + (data.msg || 'Errore');
             status.style.color = 'var(--status-danger)';

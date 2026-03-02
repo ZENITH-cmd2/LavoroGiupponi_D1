@@ -295,100 +295,130 @@
 
         <!-- ═══ VIEW: IMPOSTAZIONI ═══ -->
         <section class="view" id="view-settings">
-            <div class="section-header">
-                <h3>⚙️ Impostazioni Sistema</h3>
+            <div class="settings-header-wrapper">
+                <div class="section-header">
+                    <h3>⚙️ Impostazioni Sistema</h3>
+                </div>
+                <p class="view-description">Gestisci la sicurezza del tuo account e personalizza le tolleranze di
+                    calcolo
+                    (scarti in euro) usate dal motore di riconciliazione automatica.</p>
             </div>
-            <p class="view-description">Gestisci la sicurezza del tuo account e personalizza le tolleranze di calcolo
-                (scarti in euro) usate dal motore di riconciliazione automatica.</p>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+            <div class="settings-grid">
                 <!-- Card Password -->
-                <div
-                    style="background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                    <h4
-                        style="font-size: 16px; margin-bottom: 8px; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;">
-                        Cambia Password</h4>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Mantieni sicuro il
-                        tuo account aggiornando la password con una forte.</p>
-
-                    <form id="formPassword" onsubmit="updatePassword(event)">
-                        <div style="margin-bottom: 12px;">
-                            <label
-                                style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Vecchia
-                                Password</label>
-                            <input type="password" id="old_pw" required
-                                style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;">
-                        </div>
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px;">Nuova
-                                Password (min. 8 crt)</label>
-                            <input type="password" id="new_pw" required minlength="8"
-                                style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: 'Inter', sans-serif;">
-                        </div>
-                        <button type="submit" class="btn-small"
-                            style="background: var(--accent-blue); width: 100%;">Aggiorna Password</button>
-                        <div id="pw-status"
-                            style="margin-top: 12px; font-size: 13px; text-align: center; font-weight: 500;"></div>
-                    </form>
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h4>🔐 Cambia Password</h4>
+                        <p>Mantieni sicuro il tuo account aggiornando la password con una forte e sicura.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <form id="formPassword" onsubmit="updatePassword(event)">
+                            <div class="form-group">
+                                <label for="old_pw">Vecchia Password</label>
+                                <div class="input-wrapper">
+                                    <input type="password" id="old_pw" class="settings-input" required
+                                        placeholder="Inserisci vecchia password">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_pw">Nuova Password <span class="input-hint">(min. 8 crt)</span></label>
+                                <div class="input-wrapper">
+                                    <input type="password" id="new_pw" class="settings-input" required minlength="8"
+                                        placeholder="Inserisci nuova password">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-vibrant w-100">Aggiorna Password</button>
+                            <div id="pw-status" class="status-message"></div>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Card Tolleranze -->
-                <div
-                    style="background: var(--bg-card); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                    <h4
-                        style="font-size: 16px; margin-bottom: 8px; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;">
-                        Soglie di Riconciliazione</h4>
-                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Imposta lo scarto
-                        massimo (in Euro) o i giorni di latenza tollerati per considerare "Quadrata" una transazione.
-                    </p>
+                <div class="settings-card glass-panel">
+                    <div class="settings-card-header">
+                        <h4>🎛️ Soglie di Riconciliazione</h4>
+                        <p>Imposta lo scarto massimo (in Euro) o i giorni di latenza tollerati per considerare
+                            "Quadrata" una transazione.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <form id="formConfig" onsubmit="updateConfig(event)">
 
-                    <form id="formConfig" onsubmit="updateConfig(event)">
-                        <div
-                            style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Tolleranza Contanti
-                                (Arrotondamento)</label>
-                            <input type="number" step="0.01" id="cfg_contanti" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <div
-                            style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Tolleranza Carte Bancarie
-                                (Fisiologica)</label>
-                            <input type="number" step="0.01" id="cfg_carte" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <div
-                            style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Tolleranza Satispay</label>
-                            <input type="number" step="0.01" id="cfg_satispay" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <div
-                            style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Latenza incasso Buoni iP
-                                (Giorni)</label>
-                            <input type="number" step="1" id="cfg_giorni" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <div
-                            style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Tolleranza Anticipo Versamento
-                                Contanti (Giorni min)</label>
-                            <input type="number" step="1" id="cfg_giorni_contanti_inf" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <div
-                            style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 13px; font-weight: 500; flex: 1;">Tolleranza Ritardo Versamento
-                                Contanti (Giorni max)</label>
-                            <input type="number" step="1" id="cfg_giorni_contanti_sup" required
-                                style="width: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: right;">
-                        </div>
-                        <button type="submit" class="btn-small"
-                            style="background: var(--accent-blue); width: 100%;">Salva Tolleranze</button>
-                        <div id="cfg-status"
-                            style="margin-top: 12px; font-size: 13px; text-align: center; font-weight: 500;"></div>
-                    </form>
+                            <div class="settings-section-title">Contanti & Carte</div>
+                            <div class="settings-list">
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_contanti">Tolleranza Contanti (Arrotondamento)</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <span class="currency-symbol">€</span>
+                                        <input type="number" step="0.01" id="cfg_contanti"
+                                            class="settings-input text-right" required>
+                                    </div>
+                                </div>
+
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_carte">Tolleranza Carte Bancarie (Fisiologica)</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <span class="currency-symbol">€</span>
+                                        <input type="number" step="0.01" id="cfg_carte"
+                                            class="settings-input text-right" required>
+                                    </div>
+                                </div>
+
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_satispay">Tolleranza Satispay</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <span class="currency-symbol">€</span>
+                                        <input type="number" step="0.01" id="cfg_satispay"
+                                            class="settings-input text-right" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-section-title mt-4">Latenza Temporale</div>
+                            <div class="settings-list">
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_giorni">Latenza incasso Buoni iP</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <input type="number" step="1" id="cfg_giorni"
+                                            class="settings-input text-right w-80" required>
+                                        <span class="unit-symbol">gg</span>
+                                    </div>
+                                </div>
+
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_giorni_contanti_inf">Anticipo Versamento Contanti (max)</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <input type="number" step="1" id="cfg_giorni_contanti_inf"
+                                            class="settings-input text-right w-80" required>
+                                        <span class="unit-symbol">gg</span>
+                                    </div>
+                                </div>
+
+                                <div class="settings-item">
+                                    <div class="settings-item-info">
+                                        <label for="cfg_giorni_contanti_sup">Ritardo Versamento Contanti (max)</label>
+                                    </div>
+                                    <div class="settings-item-control">
+                                        <input type="number" step="1" id="cfg_giorni_contanti_sup"
+                                            class="settings-input text-right w-80" required>
+                                        <span class="unit-symbol">gg</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-vibrant w-100 mt-4">Salva Tolleranze</button>
+                            <div id="cfg-status" class="status-message"></div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
