@@ -261,9 +261,16 @@ function logLine(container, msg) {
 // API CALLS & RENDERING
 // ═══════════════════════════════════════════════════════════════
 
-async function apiFetch(endpoint) {
+async function apiFetch(endpoint, options = {}) {
     try {
-        const resp = await fetch(endpoint);
+        // Prevent aggressive browser caching for all our API endpoints
+        const defaultOptions = { cache: 'no-store', ...options };
+        // Manual cache-busting query parameter
+        const url = endpoint.includes('?')
+            ? `${endpoint}&_t=${Date.now()}`
+            : `${endpoint}?_t=${Date.now()}`;
+
+        const resp = await fetch(url, defaultOptions);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         return await resp.json();
     } catch (err) {
