@@ -265,10 +265,14 @@ async function apiFetch(endpoint, options = {}) {
     try {
         // Prevent aggressive browser caching for all our API endpoints
         const defaultOptions = { cache: 'no-store', ...options };
-        // Manual cache-busting query parameter
-        const url = endpoint.includes('?')
-            ? `${endpoint}&_t=${Date.now()}`
-            : `${endpoint}?_t=${Date.now()}`;
+        let url = endpoint;
+
+        // Manual cache-busting query parameter solo per GET
+        if (!options.method || options.method.toUpperCase() === 'GET') {
+            url = endpoint.includes('?')
+                ? `${endpoint}&_t=${Date.now()}`
+                : `${endpoint}?_t=${Date.now()}`;
+        }
 
         const resp = await fetch(url, defaultOptions);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -468,8 +472,11 @@ async function salvaModificheRic(id) {
     const newValoreReale = document.getElementById(`reale-inp-${id}`).value;
     const newNote = document.getElementById(`note-inp-${id}`).value;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        showToast("Errore di sessione: esegui nuovamente il login", "error");
+        return;
+    }
 
     try {
         const response = await fetch('/api/riconciliazioni/edit', {
@@ -485,17 +492,24 @@ async function salvaModificheRic(id) {
             })
         });
 
-        if (response.ok) {
-            const result = await response.json();
+        const contentType = response.headers.get("content-type");
+        let result = null;
+        let isJson = false;
 
+        if (contentType && contentType.includes("application/json")) {
+            result = await response.json();
+            isJson = true;
+        }
+
+        if (response.ok) {
             // Aggiorna UI inline per un feedback istantaneo
             document.getElementById(`reale-txt-${id}`).textContent = renderMoney(newValoreReale);
             document.getElementById(`note-txt-${id}`).textContent = newNote;
 
-            if (result.differenza !== undefined) {
+            if (result && result.differenza !== undefined) {
                 document.getElementById(`diff-cell-${id}`).innerHTML = renderDiff(result.differenza);
             }
-            if (result.nuovo_stato !== undefined) {
+            if (result && result.nuovo_stato !== undefined) {
                 document.getElementById(`stato-cell-${id}`).innerHTML = renderStatus(result.nuovo_stato);
             }
 
@@ -503,17 +517,22 @@ async function salvaModificheRic(id) {
             toggleEditRic(id);
             showToast("Record aggiornato", "success");
         } else {
-            const err = await response.json();
-            showToast(err.error || "Errore durante il salvataggio", "error");
+            console.error("Server Error:", response.status, isJson ? result : await response.text());
+            const errMsg = (isJson && result && result.error) ? result.error : `Errore server: ${response.status}`;
+            showToast(errMsg, "error");
         }
     } catch (e) {
-        showToast("Errore di rete", "error");
+        showToast("Errore di rete/comunicazione col server", "error");
         console.error(e);
     }
 }
 
 function esportaExcel() {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        showToast("Errore di sessione: esegui nuovamente il login", "error");
+        return;
+    }
     const da = document.getElementById('filterDa').value;
     const a = document.getElementById('filterA').value;
 
