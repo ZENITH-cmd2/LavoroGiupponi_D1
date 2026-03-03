@@ -65,6 +65,7 @@ function switchView(viewName) {
         impianti: '🏢 Impianti',
         sicurezza: '🔐 Sicurezza',
         'ai-report': '🤖 Report AI',
+        settings: '⚙️ Impostazioni Sistema',
     };
     document.getElementById('pageTitle').textContent = titles[viewName] || viewName;
 

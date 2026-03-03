@@ -1767,3 +1767,292 @@ body {
         padding: 16px;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS PAGE (Impostazioni Sistema) - Premium Redesign
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Layout */
+.settings-header-wrapper {
+    margin-bottom: 32px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 32px;
+    align-items: start;
+    max-width: 1200px;
+}
+
+@media (max-width: 992px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Base Card Style */
+.settings-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(1, 28, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(1, 28, 255, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.settings-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(1, 28, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* Glassmorphism Panel (optional variant) */
+.glass-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(1, 28, 255, 0.05);
+}
+
+/* Card Header */
+.settings-card-header {
+    background: var(--bg-primary);
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.settings-card-header h4 {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-card-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Card Body */
+.settings-card-body {
+    padding: 32px;
+}
+
+/* Form Groups & Inputs */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.input-hint {
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.settings-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #f1f3f5;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+.settings-input::placeholder {
+    color: #adb5bd;
+}
+
+.settings-input:hover {
+    background: #ffffff;
+    border-color: #cdd3dc;
+}
+
+.settings-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 4px rgba(1, 28, 255, 0.1);
+}
+
+/* Settings List (Tolerances style) - Fix Excessive Gaps */
+.settings-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--bg-tertiary);
+    padding-bottom: 8px;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 601px) {
+    .settings-list {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f1f3f5;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+    gap: 16px;
+}
+
+@media (max-width: 600px) {
+    .settings-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .settings-item-control {
+        width: 100%;
+    }
+
+    .settings-item-control .settings-input {
+        flex: 1;
+    }
+}
+
+.settings-item:hover {
+    background: #ffffff;
+    border-color: rgba(1, 28, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(1, 28, 255, 0.05);
+}
+
+.settings-item-info label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.settings-item-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.currency-symbol,
+.unit-symbol {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.text-right {
+    text-align: right;
+}
+
+.w-80 {
+    width: 80px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.mt-4 {
+    margin-top: 24px;
+}
+
+/* Vibrant Button */
+.btn-vibrant {
+    background: linear-gradient(135deg, var(--accent-blue), #5162ff);
+    color: white;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(1, 28, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: block;
+    margin: 24px auto 0 auto;
+}
+
+.btn-vibrant::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-25deg);
+    transition: all 0.7s ease;
+}
+
+.btn-vibrant:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(1, 28, 255, 0.4);
+}
+
+.btn-vibrant:hover::after {
+    left: 200%;
+}
+
+.btn-vibrant:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(1, 28, 255, 0.4);
+}
+
+/* Status Message Animation */
+.status-message {
+    margin-top: 16px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+    min-height: 20px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.status-message.show {
+    opacity: 1;
+    transform: translateY(0);
+}
