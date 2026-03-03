@@ -749,8 +749,10 @@ async function confermaContanti(id, azione, btnEl) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, azione })
         });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || 'Errore');
+
+        const ct = resp.headers.get('content-type');
+        const data = (ct && ct.includes('application/json')) ? await resp.json() : null;
+        if (!resp.ok) throw new Error((data && data.error) || `Errore server: ${resp.status}`);
 
         // Update card visually
         const card = document.getElementById(`cc-card-${id}`);
@@ -760,8 +762,9 @@ async function confermaContanti(id, azione, btnEl) {
             const actions = card.querySelector('.cc-actions');
             if (actions) actions.innerHTML = '<span class="cc-confermato-badge">✅ Confermato</span>';
         }
+        showToast('Record confermato', 'success');
     } catch (err) {
-        alert('Errore: ' + err.message);
+        showToast('Errore: ' + err.message, 'error');
         if (btnEl) btnEl.disabled = false;
     }
 }
@@ -775,8 +778,10 @@ async function segnalaContanti(id, btnEl) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, azione: 'rifiuta', nota })
         });
-        const data = await resp.json();
-        if (!resp.ok) throw new Error(data.error || 'Errore');
+
+        const ct = resp.headers.get('content-type');
+        const data = (ct && ct.includes('application/json')) ? await resp.json() : null;
+        if (!resp.ok) throw new Error((data && data.error) || `Errore server: ${resp.status}`);
 
         // Update card visually
         const card = document.getElementById(`cc-card-${id}`);
@@ -786,8 +791,9 @@ async function segnalaContanti(id, btnEl) {
             const actions = card.querySelector('.cc-actions');
             if (actions) actions.innerHTML = '<span class="cc-segnalato-badge">❌ Segnalato</span>';
         }
+        showToast('Anomalia segnalata', 'success');
     } catch (err) {
-        alert('Errore: ' + err.message);
+        showToast('Errore: ' + err.message, 'error');
         if (btnEl) btnEl.disabled = false;
     }
 }

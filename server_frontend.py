@@ -417,6 +417,51 @@ def api_ai_report():
         conn.close()
 
 
+@app.route("/api/contanti-conferma", methods=["POST"])
+@jwt_required()
+def api_contanti_conferma():
+    """Conferma o rifiuta un matching Contanti dalla Vista Simona."""
+    conn = get_readonly_db()
+    try:
+        data = request.get_json()
+        rec_id = data.get("id")
+        azione = data.get("azione")  # "conferma" o "rifiuta"
+        nota = data.get("nota", "")
+
+        if not rec_id or azione not in ("conferma", "rifiuta"):
+            return jsonify({"error": "Parametri mancanti o non validi"}), 400
+
+        cur = conn.cursor()
+
+        # Verifica esistenza record
+        cur.execute("SELECT id FROM report_riconciliazioni WHERE id = ?", (rec_id,))
+        if not cur.fetchone():
+            return jsonify({"error": "Record non trovato"}), 404
+
+        if azione == "conferma":
+            cur.execute(
+                "UPDATE report_riconciliazioni SET risolto = 1, note = ? WHERE id = ?",
+                (nota if nota else "Confermato manualmente", rec_id)
+            )
+            nuovo_stato = "confermato"
+        else:  # rifiuta
+            cur.execute(
+                "UPDATE report_riconciliazioni SET risolto = 0, stato = 'ANOMALIA_GRAVE', note = ? WHERE id = ?",
+                (nota if nota else "Segnalato come anomalia", rec_id)
+            )
+            nuovo_stato = "segnalato"
+
+        conn.commit()
+        return jsonify({"message": f"Record {nuovo_stato}", "stato": nuovo_stato}), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
 @app.route("/api/riconciliazioni/edit", methods=["POST"])
 @jwt_required()
 def api_riconciliazioni_edit():
