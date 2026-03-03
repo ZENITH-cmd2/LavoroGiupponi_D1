@@ -11,8 +11,9 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <link rel="icon" type="image/png" href="/static/favicon.png?v=4">
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 
 <body>
@@ -77,6 +78,31 @@
 
         <!-- ═══ VIEW: DASHBOARD ═══ -->
         <section class="view active" id="view-dashboard">
+
+            <!-- ── Analisi Torta Incassi ── -->
+            <div class="chart-panel" id="chartPanel">
+                <div class="chart-panel-header">
+                    <div>
+                        <h3 class="chart-title">📊 Analisi Incassi per Categoria</h3>
+                        <p class="chart-subtitle">Somma dei valori Fortech (teorico) e Reale suddivisi per tipo di
+                            incasso</p>
+                    </div>
+                    <button class="btn-refresh" onclick="loadChartData()">🔄 Aggiorna</button>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-box">
+                        <h4 class="chart-box-title">Fortech (Teorico)</h4>
+                        <div class="chart-canvas-wrap"><canvas id="chartFortech"></canvas></div>
+                        <div class="chart-legend" id="legendFortech"></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4 class="chart-box-title">Reale (Verificato)</h4>
+                        <div class="chart-canvas-wrap"><canvas id="chartReale"></canvas></div>
+                        <div class="chart-legend" id="legendReale"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card" id="statImpianti">
                     <div class="stat-icon">🏢</div>
@@ -443,8 +469,8 @@
         </div>
     </div>
 
-    <script src="/static/_auth.js?v=7"></script>
-    <script src="/static/app.js?v=7"></script>
+    <script src="/static/_auth.js?v=8"></script>
+    <script src="/static/app.js?v=8"></script>
 </body>
 
 </html>

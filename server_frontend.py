@@ -63,6 +63,31 @@ def login_page():
 # ============================================================================
 # API ENDPOINTS (READ)
 # ============================================================================
+@app.route("/api/chart-data")
+@jwt_required()
+def api_chart_data():
+    """Aggregated Fortech vs Reale totals per category for dashboard pie charts."""
+    conn = get_readonly_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                categoria,
+                ROUND(SUM(COALESCE(valore_fortech, 0)), 2) AS tot_fortech,
+                ROUND(SUM(COALESCE(valore_reale,   0)), 2) AS tot_reale,
+                COUNT(*) AS num_record
+            FROM report_riconciliazioni
+            GROUP BY categoria
+            ORDER BY tot_fortech DESC
+        """)
+        rows = cur.fetchall()
+        return jsonify([dict(r) for r in rows])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
 @app.route("/api/stats")
 @jwt_required()
 def api_stats():

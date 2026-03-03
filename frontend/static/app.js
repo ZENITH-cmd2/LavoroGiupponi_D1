@@ -283,6 +283,92 @@ async function apiFetch(endpoint, options = {}) {
     }
 }
 
+// ── Chart Incassi ──
+let _chartFortechInst = null;
+let _chartRealeInst = null;
+
+async function loadChartData() {
+    const data = await apiFetch('/api/chart-data');
+    if (!data || !data.length) {
+        document.getElementById('chartPanel').style.display = 'none';
+        return;
+    }
+    document.getElementById('chartPanel').style.display = 'block';
+
+    const CAT_COLORS = {
+        contanti: '#d29922',
+        carte_bancarie: '#3fb950',
+        carte_petrolifere: '#58a6ff',
+        satispay: '#8b949e',
+        crediti: '#bc8cff',
+    };
+    const DEFAULT_CLR = ['#f78166', '#79c0ff', '#56d364', '#e3b341', '#d2a8ff', '#ffa657'];
+
+    const labels = data.map(r => (CATEGORY_LABELS[r.categoria]?.label ?? r.categoria).replace(/^.\s/, ''));
+    const fortech = data.map(r => r.tot_fortech);
+    const reale = data.map(r => r.tot_reale);
+    const colors = data.map((r, i) => CAT_COLORS[r.categoria] ?? DEFAULT_CLR[i % DEFAULT_CLR.length]);
+
+    const makeDataset = values => ({
+        data: values,
+        backgroundColor: colors.map(c => c + 'cc'),
+        borderColor: colors,
+        borderWidth: 2,
+        hoverOffset: 14,
+    });
+
+    const chartOpts = {
+        type: 'doughnut',
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '58%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const v = ctx.parsed;
+                            const tot = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = tot ? ((v / tot) * 100).toFixed(1) : 0;
+                            return ` € ${v.toLocaleString('it-IT', { minimumFractionDigits: 2 })}  (${pct}%)`;
+                        }
+                    }
+                }
+            },
+            animation: { animateRotate: true, duration: 900 }
+        }
+    };
+
+    const buildLegend = (elId, values) => {
+        const tot = values.reduce((a, b) => a + b, 0);
+        document.getElementById(elId).innerHTML = data.map((r, i) => {
+            const lbl = (CATEGORY_LABELS[r.categoria]?.label ?? r.categoria);
+            const pct = tot ? ((values[i] / tot) * 100).toFixed(1) : 0;
+            const fmt = values[i].toLocaleString('it-IT', { minimumFractionDigits: 2 });
+            return `<div class="chart-legend-item">
+                <span class="chart-legend-dot" style="background:${colors[i]}"></span>
+                <span class="chart-legend-label">${lbl}</span>
+                <span class="chart-legend-val">€ ${fmt}</span>
+                <span class="chart-legend-pct">${pct}%</span>
+            </div>`;
+        }).join('');
+    };
+
+    if (_chartFortechInst) _chartFortechInst.destroy();
+    if (_chartRealeInst) _chartRealeInst.destroy();
+
+    _chartFortechInst = new Chart(document.getElementById('chartFortech'), {
+        ...chartOpts, data: { labels, datasets: [makeDataset(fortech)] }
+    });
+    _chartRealeInst = new Chart(document.getElementById('chartReale'), {
+        ...chartOpts, data: { labels, datasets: [makeDataset(reale)] }
+    });
+
+    buildLegend('legendFortech', fortech);
+    buildLegend('legendReale', reale);
+}
+
 function renderStatus(stato) {
     const s = STATUS_MAP[stato] || { label: stato, css: 'status-non-trovato' };
     return `<span class="status-badge ${s.css}">${s.label}</span>`;
@@ -1134,6 +1220,7 @@ async function updatePassword(e) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
+    loadChartData();
 
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
