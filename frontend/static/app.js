@@ -486,8 +486,21 @@ async function salvaModificheRic(id) {
         });
 
         if (response.ok) {
-            // Aggiorna il testo e chiudi l'edit mode (o più semplicemente ricarica tutto)
-            loadRiconciliazioni();
+            const result = await response.json();
+
+            // Aggiorna UI inline per un feedback istantaneo
+            document.getElementById(`reale-txt-${id}`).textContent = renderMoney(newValoreReale);
+            document.getElementById(`note-txt-${id}`).textContent = newNote;
+
+            if (result.differenza !== undefined) {
+                document.getElementById(`diff-cell-${id}`).innerHTML = renderDiff(result.differenza);
+            }
+            if (result.nuovo_stato !== undefined) {
+                document.getElementById(`stato-cell-${id}`).innerHTML = renderStatus(result.nuovo_stato);
+            }
+
+            // Chiudi l'edit mode
+            toggleEditRic(id);
             showToast("Record aggiornato", "success");
         } else {
             const err = await response.json();
