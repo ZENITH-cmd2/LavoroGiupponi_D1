@@ -725,6 +725,62 @@ def api_upload():
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 # ============================================================================
+# API SETTINGS — API KEY MANAGEMENT
+# ============================================================================
+
+@app.route("/api/settings/apikey", methods=["GET"])
+@jwt_required()
+def api_get_apikey():
+    """Return the current OpenRouter API key (masked)."""
+    from backend.riconciliazione.ai_report import get_saved_api_key
+    key = get_saved_api_key("OpenRouter")
+    masked = (key[:8] + "…" + key[-4:]) if len(key) > 12 else ("●" * len(key) if key else "")
+    return jsonify({"has_key": bool(key), "masked": masked})
+
+
+@app.route("/api/settings/apikey", methods=["POST"])
+@jwt_required()
+def api_save_apikey():
+    """Save the OpenRouter API key to .env.local."""
+    from backend.riconciliazione.ai_report import save_api_key
+    data = request.get_json()
+    key = (data or {}).get("api_key", "").strip()
+    if not key:
+        return jsonify({"error": "Chiave vuota"}), 400
+    if not key.startswith("sk-or-"):
+        return jsonify({"error": "Il formato della chiave non è valido (deve iniziare con sk-or-)"}), 400
+    save_api_key("OpenRouter", key)
+    return jsonify({"message": "Chiave salvata con successo"})
+
+
+@app.route("/api/settings/apikey/test", methods=["POST"])
+@jwt_required()
+def api_test_apikey():
+    """Send a minimal test request to OpenRouter to verify the key."""
+    from backend.riconciliazione.ai_report import get_saved_api_key
+    import requests as ext_req
+    data = request.get_json() or {}
+    key = data.get("api_key", "").strip() or get_saved_api_key("OpenRouter")
+    if not key:
+        return jsonify({"error": "Nessuna chiave configurata"}), 400
+    try:
+        resp = ext_req.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+            json={"model": "openai/gpt-4o-mini", "messages": [{"role": "user", "content": "ping"}], "max_tokens": 5},
+            timeout=10
+        )
+        if resp.status_code == 200:
+            return jsonify({"message": "✅ Connessione riuscita! Chiave valida."})
+        elif resp.status_code == 401:
+            return jsonify({"error": "❌ Chiave non autorizzata — controlla che sia corretta."}), 401
+        else:
+            return jsonify({"error": f"⚠️ Risposta inattesa: {resp.status_code} — {resp.text[:200]}"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Errore di connessione: {str(e)}"}), 500
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 if __name__ == "__main__":

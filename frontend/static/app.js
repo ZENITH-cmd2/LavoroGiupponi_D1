@@ -1229,3 +1229,76 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS — API KEY (OpenRouter)
+// ═══════════════════════════════════════════════════════════════
+
+function _apikeyStatus(msg, isError = false) {
+    const el = document.getElementById('apikey-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = isError ? 'var(--accent-red)' : 'var(--accent-green)';
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function toggleApiKeyVisibility() {
+    const inp = document.getElementById('openrouter_key');
+    const btn = document.getElementById('btnToggleKey');
+    if (!inp) return;
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁️'; }
+}
+
+async function loadApiKeyStatus() {
+    const data = await apiFetch('/api/settings/apikey');
+    if (!data) return;
+    const inp = document.getElementById('openrouter_key');
+    if (data.has_key && inp) {
+        inp.placeholder = `Chiave attuale: ${data.masked}`;
+        _apikeyStatus('✅ Chiave API configurata');
+    } else if (inp) {
+        inp.placeholder = 'sk-or-v1-…';
+        _apikeyStatus('⚠️ Nessuna chiave configurata', true);
+    }
+}
+
+async function salvaApiKey() {
+    const inp = document.getElementById('openrouter_key');
+    const key = inp ? inp.value.trim() : '';
+    if (!key) { _apikeyStatus('Inserisci la chiave prima di salvare.', true); return; }
+
+    const resp = await apiFetch('/api/settings/apikey', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key })
+    });
+
+    if (resp && resp.message) {
+        showToast(resp.message, 'success');
+        _apikeyStatus(resp.message);
+        inp.value = '';
+        loadApiKeyStatus();
+    } else {
+        const err = (resp && resp.error) || 'Errore nel salvataggio';
+        showToast(err, 'error');
+        _apikeyStatus(err, true);
+    }
+}
+
+async function testApiKey() {
+    const inp = document.getElementById('openrouter_key');
+    const key = inp ? inp.value.trim() : '';
+    _apikeyStatus('⏳ Test in corso…');
+
+    const payload = key ? { api_key: key } : {};
+    const resp = await apiFetch('/api/settings/apikey/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (resp && resp.message) { _apikeyStatus(resp.message); showToast(resp.message, 'success'); }
+    else { const e = (resp && resp.error) || 'Connessione fallita'; _apikeyStatus(e, true); showToast(e, 'error'); }
+}
