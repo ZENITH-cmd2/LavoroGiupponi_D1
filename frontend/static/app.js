@@ -401,20 +401,36 @@ async function loadRiconciliazioni() {
                         <th style="width: 120px; text-align: right;">Fortech (€)</th>
                         <th style="width: 120px; text-align: right;">Reale (€)</th>
                         <th style="width: 120px; text-align: right;">Diff (€)</th>
-                        <th style="width: 150px;">Stato</th>
-                        <th style="width: 250px;">Note</th>
+                        <th style="width: 130px;">Stato</th>
+                        <th style="width: 200px;">Note</th>
+                        <th style="width: 70px; text-align: center;">Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${catData.map(r => `
-                        <tr>
+                        <tr id="row-ric-${r.id}">
                             <td>${r.data || '—'}</td>
                             <td style="font-weight: 500;">${r.impianto || '—'}</td>
                             <td style="text-align: right;">${renderMoney(r.valore_fortech)}</td>
-                            <td style="text-align: right;">${renderMoney(r.valore_reale)}</td>
-                            <td style="text-align: right; font-weight: bold;">${renderDiff(r.differenza)}</td>
-                            <td>${renderStatus(r.stato)}</td>
-                            <td style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">${r.note || ''}</td>
+                            
+                            <td style="text-align: right;">
+                                <span class="val-reale-text" id="reale-txt-${r.id}">${renderMoney(r.valore_reale)}</span>
+                                <input type="number" step="0.01" class="edit-input edit-reale" id="reale-inp-${r.id}" value="${r.valore_reale !== null ? r.valore_reale : ''}" style="display:none; width:80px; text-align: right;">
+                            </td>
+                            
+                            <td style="text-align: right; font-weight: bold;" id="diff-cell-${r.id}">${renderDiff(r.differenza)}</td>
+                            <td id="stato-cell-${r.id}">${renderStatus(r.stato)}</td>
+                            
+                            <td style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                                <span class="val-note-text" id="note-txt-${r.id}">${r.note || ''}</span>
+                                <input type="text" class="edit-input edit-note" id="note-inp-${r.id}" value="${r.note || ''}" style="display:none; width:100%">
+                            </td>
+                            
+                            <td style="text-align: center;">
+                                <button class="btn-action btn-edit" id="btn-edit-${r.id}" onclick="toggleEditRic(${r.id})" title="Modifica">✏️</button>
+                                <button class="btn-action btn-save" id="btn-save-${r.id}" onclick="salvaModificheRic(${r.id})" style="display:none" title="Salva">💾</button>
+                                <button class="btn-action btn-cancel" id="btn-cancel-${r.id}" onclick="toggleEditRic(${r.id})" style="display:none" title="Annulla">❌</button>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -424,6 +440,115 @@ async function loadRiconciliazioni() {
     }
 
     container.innerHTML = html;
+}
+
+// ── Modifica inline e Esportazioni ──
+function toggleEditRic(id) {
+    const isEditing = document.getElementById(`reale-inp-${id}`).style.display === 'block';
+
+    document.getElementById(`reale-txt-${id}`).style.display = isEditing ? 'inline' : 'none';
+    document.getElementById(`reale-inp-${id}`).style.display = isEditing ? 'none' : 'block';
+
+    document.getElementById(`note-txt-${id}`).style.display = isEditing ? 'inline' : 'none';
+    document.getElementById(`note-inp-${id}`).style.display = isEditing ? 'none' : 'block';
+
+    document.getElementById(`btn-edit-${id}`).style.display = isEditing ? 'inline-block' : 'none';
+    document.getElementById(`btn-save-${id}`).style.display = isEditing ? 'none' : 'inline-block';
+    document.getElementById(`btn-cancel-${id}`).style.display = isEditing ? 'none' : 'inline-block';
+}
+
+async function salvaModificheRic(id) {
+    const newValoreReale = document.getElementById(`reale-inp-${id}`).value;
+    const newNote = document.getElementById(`note-inp-${id}`).value;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/riconciliazioni/edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                id: id,
+                valore_reale: newValoreReale,
+                note: newNote
+            })
+        });
+
+        if (response.ok) {
+            // Aggiorna il testo e chiudi l'edit mode (o più semplicemente ricarica tutto)
+            loadRiconciliazioni();
+            showToast("Record aggiornato", "success");
+        } else {
+            const err = await response.json();
+            showToast(err.error || "Errore durante il salvataggio", "error");
+        }
+    } catch (e) {
+        showToast("Errore di rete", "error");
+        console.error(e);
+    }
+}
+
+function esportaExcel() {
+    const token = localStorage.getItem("token");
+    const da = document.getElementById('filterDa').value;
+    const a = document.getElementById('filterA').value;
+
+    let url = '/api/riconciliazioni/export/excel';
+    let params = [];
+    if (da) params.push(`da=${da}`);
+    if (a) params.push(`a=${a}`);
+    if (params.length > 0) url += '?' + params.join('&');
+
+    fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+        .then(response => {
+            if (!response.ok) throw new Error("Errore generazione Excel");
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const aElement = document.createElement('a');
+            aElement.style.display = 'none';
+            aElement.href = url;
+            const filename = `Riconciliazioni_${new Date().toISOString().split('T')[0]}.xlsx`;
+            aElement.download = filename;
+            document.body.appendChild(aElement);
+            aElement.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("Impossibile esportare in Excel", "error");
+        });
+}
+
+function esportaPDF() {
+    const element = document.getElementById('riconciliazioniTablesContainer');
+    // Salva l'originale
+    const originalStyle = element.style.cssText;
+
+    // Configura html2pdf per non mostrare bottoni azione
+    var opt = {
+        margin: 10,
+        filename: `Riconciliazioni_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    // Rimuovi temporaneamente i bottoni azione per il PDF
+    const btnActions = element.querySelectorAll('.btn-action');
+    btnActions.forEach(btn => btn.style.display = 'none');
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Ripristina l'UI
+        loadRiconciliazioni();
+    });
 }
 
 // ── Contanti / Banca (Simona — Conferma Matching) ──

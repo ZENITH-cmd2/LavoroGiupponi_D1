@@ -417,6 +417,149 @@ def api_ai_report():
         conn.close()
 
 
+@app.route("/api/riconciliazioni/edit", methods=["POST"])
+@jwt_required()
+def api_riconciliazioni_edit():
+    conn = get_readonly_db()
+    try:
+        data = request.get_json()
+        rec_id = data.get("id")
+        nuovo_reale = data.get("valore_reale")
+        nuove_note = data.get("note", "")
+        
+        if not rec_id or nuovo_reale is None:
+            return jsonify({"error": "Dati mancanti (id, valore_reale)"}), 400
+            
+        try:
+            nuovo_reale = float(nuovo_reale)
+        except ValueError:
+            return jsonify({"error": "Formato valore_reale non valido"}), 400
+
+        cur = conn.cursor()
+        cur.execute("SELECT valore_fortech, categoria FROM report_riconciliazioni WHERE id = ?", (rec_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({"error": "Record non trovato"}), 404
+            
+        teorico = float(row["valore_fortech"] or 0)
+        categoria = row["categoria"]
+        
+        diff_netta = teorico - nuovo_reale
+        diff_assoluta = abs(diff_netta)
+        
+        # Leggi configurazioni
+        config_path = os.path.join(PROJECT_ROOT, "backend", "config.json")
+        import json
+        cfg = {}
+        try:
+            with open(config_path, "r") as f:
+                cfg = json.load(f)
+        except Exception:
+            pass
+            
+        toll_stretta = 0.50
+        toll_larga = 5.00
+        
+        if categoria == "contanti":
+            toll_stretta = float(cfg.get("tolleranza_contanti_arrotondamento", 5.00))
+            toll_larga = 20.00
+        elif categoria == "carte_bancarie":
+            toll_stretta = float(cfg.get("tolleranza_carte_fisiologica", 0.50))
+        elif categoria == "satispay":
+            toll_stretta = float(cfg.get("tolleranza_satispay", 0.01))
+            
+        if teorico == 0 and nuovo_reale == 0:
+            nuovo_stato = "QUADRATO"
+        elif teorico > 0 and nuovo_reale == 0:
+            nuovo_stato = "NON_TROVATO"
+        elif diff_assoluta <= toll_stretta:
+            nuovo_stato = "QUADRATO_ARROT" if categoria == "contanti" else "QUADRATO"
+        elif diff_assoluta <= toll_larga:
+            nuovo_stato = "ANOMALIA_LIEVE"
+        else:
+            nuovo_stato = "ANOMALIA_GRAVE"
+            
+        cur.execute("""
+            UPDATE report_riconciliazioni 
+            SET valore_reale = ?, differenza = ?, stato = ?, note = ? 
+            WHERE id = ?
+        """, (nuovo_reale, diff_netta, nuovo_stato, nuove_note, rec_id))
+        conn.commit()
+        
+        return jsonify({"message": "Aggiornato con successo", "nuovo_stato": nuovo_stato, "differenza": diff_netta}), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+
+@app.route("/api/riconciliazioni/export/excel", methods=["GET"])
+@jwt_required()
+def api_export_excel():
+    conn = get_readonly_db()
+    try:
+        da = request.args.get("da")
+        a = request.args.get("a")
+
+        query = """
+            SELECT 
+                r.data_riferimento as Data,
+                i.nome_impianto as Impianto,
+                r.categoria as Categoria,
+                r.valore_fortech as Teorico_EUR,
+                r.valore_reale as Reale_EUR,
+                r.differenza as Differenza_EUR,
+                r.stato as Stato,
+                r.note as Note
+            FROM report_riconciliazioni r
+            JOIN impianti i ON r.impianto_id = i.id
+            WHERE 1=1
+        """
+        params = []
+        if da:
+            query += " AND r.data_riferimento >= ?"
+            params.append(da)
+        if a:
+            query += " AND r.data_riferimento <= ?"
+            params.append(a)
+            
+        query += " ORDER BY r.data_riferimento DESC, i.nome_impianto, r.categoria"
+
+        df = pd.read_sql_query(query, conn, params=params)
+        
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Riconciliazioni')
+            workbook = writer.book
+            worksheet = writer.sheets['Riconciliazioni']
+            
+            # Formattazione
+            money_fmt = workbook.add_format({'num_format': '€ #,##0.00'})
+            date_fmt = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+            
+            for i, col in enumerate(df.columns):
+                col_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.set_column(i, i, col_len)
+                if 'EUR' in col:
+                    worksheet.set_column(i, i, 15, money_fmt)
+                if col == 'Data':
+                    worksheet.set_column(i, i, 12, date_fmt)
+
+        output.seek(0)
+        filename = f"Riconciliazioni_{da or 'all'}_{a or 'all'}.xlsx"
+        return send_file(output, download_name=filename, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 # ============================================================================
 # API ENDPOINTS (WRITE / ACTION)
 # ============================================================================

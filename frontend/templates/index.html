@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="icon" type="image/png" href="/static/favicon.png?v=3">
     <link rel="stylesheet" href="/static/style.css?v=3">
 </head>
@@ -171,6 +172,12 @@
         <section class="view" id="view-riconciliazioni">
             <div class="section-header">
                 <h3>Risultati Riconciliazione</h3>
+                <div style="display: flex; gap: 8px; margin-left:16px;">
+                    <button class="btn btn-small" onclick="esportaExcel()"
+                        style="background: var(--status-ok); color: white; border: none;">📊 Excel</button>
+                    <button class="btn btn-small" onclick="esportaPDF()"
+                        style="background: var(--status-danger); color: white; border: none;">📄 PDF</button>
+                </div>
                 <div class="filters">
                     <input type="date" id="filterDa" class="input-date" placeholder="Da">
                     <input type="date" id="filterA" class="input-date" placeholder="A">
